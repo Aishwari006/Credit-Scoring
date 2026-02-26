@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Data & Datasets (CRITICAL: Never commit raw financial data)
+dataset/
+*.csv
+*.xlsx
+
+# Generated Output Graphs
+*.png
+outputs/
+
+# OS & IDE Files
+.DS_Store
+.vscode/
+
+# NOTE ON .PKL FILES: 
+# We are intentionally NOT ignoring *.pkl files here. 
+# Your Django app needs those models to run the demo, so we want them pushed to GitHub!
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+db.sqlite3
+media/
+
+
+# Virtual Environments (Catch-all)
+.venv/
+venv/
+env/
+.env
+
+# User Uploads & Media (CRITICAL: Don't push uploaded CSVs!)
+media/
+uploads/
+*.csv
+*.xlsx
+
+# OS junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
