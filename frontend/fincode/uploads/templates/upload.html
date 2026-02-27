@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LiquidityLens AI - MSME Credit Intelligence</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
+        }
+
+        /* Navbar */
+        .navbar { background: linear-gradient(90deg, #0f172a, #020617); }
+        .navbar-brand { color: #22c55e !important; font-weight: 700; font-size: 1.25rem; }
+        .nav-link { color: #cbd5e1 !important; margin-left: 1rem; }
+
+        /* Hero */
+        .hero-title { font-size: 2.5rem; font-weight: 700; }
+        .hero-title span { color: #22c55e; }
+
+        /* Feature pills */
+        .pill {
+            background: white; border-radius: 999px; padding: 0.6rem 1.2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); font-size: 0.9rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        /* Upload box */
+        .upload-box {
+            background: white; border-radius: 16px; padding: 3rem;
+            box-shadow: 0 20px 40px rgba(15,23,42,0.08); max-width: 900px; margin: auto;
+        }
+
+        .drop-zone {
+            border: 2px dashed #94a3b8; border-radius: 16px; padding: 3rem;
+            text-align: center; cursor: pointer; transition: 0.3s ease;
+        }
+        .drop-zone:hover { border-color: #22c55e; background-color: #f0fdf4; }
+
+        .primary-btn {
+            background: linear-gradient(90deg, #0f172a, #020617); color: white;
+            border: none; padding: 0.9rem 1.2rem; border-radius: 12px; font-weight: 600;
+        }
+        .primary-btn:hover { opacity: 0.95; }
+
+        .aa-btn {
+            background: linear-gradient(90deg, #1e293b, #020617); color: white;
+            border-radius: 14px; padding: 1rem; border: none; width: 100%; font-weight: 600;
+        }
+        /* --- Account Aggregator Simulation Styles --- */
+        .aa-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .aa-overlay.show { opacity: 1; pointer-events: all; }
+        .aa-modal { width: 450px; border-radius: 16px; background: white; transform: translateY(20px); transition: 0.4s ease; }
+        .aa-overlay.show .aa-modal { transform: translateY(0); }
+        .aa-step { font-size: 0.95rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; color: #94a3b8; }
+        .aa-step i { font-size: 1.2rem; }
+        .aa-step.active { color: #0f172a; font-weight: 600; animation: pulseText 1.5s infinite; }
+        .aa-step.active i { color: #3b82f6; }
+        .aa-step.done { color: #0f172a; }
+        .aa-step.done i::before { content: "\F26A"; /* bi-check-circle-fill */ color: #22c55e; }
+        @keyframes pulseText { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg px-4 py-3">
+    <a class="navbar-brand" href="#">LiquidityLens AI</a>
+    <span class="text-slate-300 ms-2">MSME Credit Intelligence</span>
+
+    <div class="ms-auto d-flex">
+        <a class="nav-link" href="#">Data Ingestion</a>
+        <a class="nav-link" href="#">Analytics</a>
+        <a class="nav-link" href="#">Decision Engine</a>
+        <a class="nav-link text-danger fw-bold" href="{% url 'logout' %}">Sign Out</a>
+    </div>
+</nav>
+
+<section class="container text-center my-5">
+    <h1 class="hero-title">Cash Flow <span>Intelligence</span></h1>
+    <p class="text-muted mt-3">Upload your bank statement or connect via Account Aggregator to unlock AI-powered credit insights for your MSME business.</p>
+
+    <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+        <div class="pill"><i class="bi bi-shield-lock text-success"></i>Bank-Grade Security</div>
+        <div class="pill"><i class="bi bi-lightning-charge text-success"></i>Real-Time Analysis</div>
+        <div class="pill"><i class="bi bi-check-circle text-success"></i>RBI Compliant</div>
+    </div>
+</section>
+
+<section class="container mb-5">
+    <div class="upload-box">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-5 text-start">
+                <h4 class="fw-semibold mb-4">Business Information</h4>
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Business Name</label>
+                    <input type="text" name="business_name" class="form-control form-control-lg" placeholder="e.g. Acme Corp" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-medium">GSTIN</label>
+                        <input type="text" name="gstin" class="form-control form-control-lg" placeholder="22AAAAA0000A1Z5" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-medium">PAN</label>
+                        <input type="text" name="pan" class="form-control form-control-lg" placeholder="ABCDE1234F" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="drop-zone mb-4" onclick="document.getElementById('id_file').click();">
+                <i class="bi bi-file-earmark-text fs-1 text-secondary" id="upload-icon"></i>
+                <h5 class="mt-3" id="file-name-display">Drop your bank statement here</h5>
+                <p class="text-muted" id="file-subtitle">Supports CSV, XLSX formats • Max 10MB</p>
+
+                <input type="file" name="file" id="id_file" style="display: none;" required>
+            </div>
+
+            <div class="text-center mb-4">
+                <button type="submit" class="primary-btn px-5 w-100">
+                    Verify & Upload Financial Records
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center text-muted my-3">OR</div>
+
+        <button id="simulate-aa-btn" class="aa-btn" type="button">
+            <i class="bi bi-cloud-arrow-down me-2"></i> Fetch via Account Aggregator API (Simulated)
+        </button>
+        <p class="text-center text-muted mt-3" style="font-size: 0.85rem;">
+            RBI-licensed AA framework • Consent-based data fetch • End-to-end encrypted
+        </p>
+
+    </div>
+</section>
+
+<div id="aa-overlay" class="aa-overlay">
+    <div class="aa-modal p-4 shadow-lg">
+        <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <i class="bi bi-fingerprint text-primary me-2 fs-3"></i> FIP Sync Initiation
+        </h5>
+        
+        <div class="progress mb-4" style="height: 6px; border-radius: 10px;">
+            <div id="aa-progress-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+        </div>
+
+        <div id="step-1" class="aa-step">
+  <i class="bi bi-shield-lock"></i>
+  Establishing secure session with Account Aggregator Network...
+</div>
+
+<div id="step-2" class="aa-step d-none">
+  <i class="bi bi-patch-check"></i>
+  Validating digitally signed Consent Artifact (FIU ↔ FIP handshake)...
+</div>
+
+<div id="step-3" class="aa-step d-none">
+  <i class="bi bi-key"></i>
+  Decrypting encrypted financial payload using FIU private key...
+</div>
+
+<div id="step-4" class="aa-step d-none">
+  <i class="bi bi-bank"></i>
+  Aggregating 24-month bank transaction ledger from multiple FIPs...
+</div>
+
+<div id="step-5" class="aa-step d-none">
+  <i class="bi bi-graph-up-arrow"></i>
+  Normalizing cash inflow/outflow streams and detecting income patterns...
+</div>
+
+<div id="step-6" class="aa-step d-none">
+  <i class="bi bi-cpu"></i>
+  Running CashFlowAI underwriting model (Risk Score + Dynamic Loan Sizing)...
+</div>
+
+<div id="step-7" class="aa-step d-none">
+  <i class="bi bi-check-circle"></i>
+  Generating credit decision and confidence score...
+</div>
+    </div>
+</div>
+<script>
+    document.getElementById('id_file').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        document.getElementById('file-name-display').innerText = fileName;
+        document.getElementById('file-name-display').className = "mt-3 text-success fw-bold";
+        document.getElementById('upload-icon').className = "bi bi-check-circle-fill fs-1 text-success";
+        document.getElementById('file-subtitle').innerText = "File ready for processing";
+    });
+    document.getElementById('simulate-aa-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const overlay = document.getElementById('aa-overlay');
+        const progressBar = document.getElementById('aa-progress-bar');
+        const steps = [
+    document.getElementById('step-1'),
+    document.getElementById('step-2'),
+    document.getElementById('step-3'),
+    document.getElementById('step-4'),
+    document.getElementById('step-5'),
+    document.getElementById('step-6'),
+    document.getElementById('step-7')
+];
+
+        // Reset UI
+        progressBar.style.width = '0%';
+        steps.forEach(step => {
+            step.classList.remove('active', 'done', 'd-none');
+            step.classList.add('d-none');
+            step.querySelector('i').className = 'bi bi-circle'; // Reset icon
+        });
+
+        // Show Overlay
+        overlay.classList.add('show');
+        
+        let currentStep = 0;
+
+function runStep() {
+    if (currentStep > 0) {
+        steps[currentStep - 1].classList.remove('active');
+        steps[currentStep - 1].classList.add('done');
+    }
+
+    if (currentStep < steps.length) {
+        steps[currentStep].classList.remove('d-none');
+        steps[currentStep].classList.add('active');
+
+        // Smooth progress instead of 20% jumps
+        const progressPercent = Math.floor(((currentStep + 1) / steps.length) * 100);
+        progressBar.style.width = progressPercent + '%';
+
+        currentStep++;
+
+        // 🔥 Slower + realistic delay
+        const delay = Math.floor(Math.random() * 1200) + 1800; 
+        // Now each step takes 1.8s – 3s
+
+        setTimeout(runStep, delay);
+
+    } else {
+        // Final pause before redirect
+        setTimeout(() => {
+            window.location.href = "/dashboard/AA_Simulated_Corp/";
+        }, 2000);
+    }
+}
+        // Start sequence
+        setTimeout(runStep, 500);
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

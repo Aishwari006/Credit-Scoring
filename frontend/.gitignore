@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.sqlite3
 db.sqlite3
-media/
 
 
 # Virtual Environments (Catch-all)
@@ -14,8 +13,6 @@ env/
 .env
 
 # User Uploads & Media (CRITICAL: Don't push uploaded CSVs!)
-media/
-uploads/
 *.csv
 *.xlsx
 

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics Terminal - {{ business_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: "Inter", system-ui;
+        }
+
+        .card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-dark bg-dark px-4 py-3 mb-4">
+        <a class="navbar-brand fw-bold text-success" href="#">LiquidityLens AI</a>
+        <span class="text-white ms-2">Cash-Flow Based Credit Assessment</span>
+        <a class="nav-link text-danger fw-bold" href="{% url 'logout' %}">Sign Out</a>
+    </nav>
+
+    <div class="container mb-3">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <h2 class="fw-bold mb-0">{{ business_name }}</h2>
+                <p class="text-muted mb-0">Alternative Financial Signals Dashboard</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'portfolio' %}" class="btn btn-dark"><i class="bi bi-grid-1x2-fill me-2"></i>Portfolio Command Center</a>
+                <a href="{% url 'upload_csv' %}" class="btn btn-outline-secondary">New Upload</a>
+            </div>
+        </div>
+
+        <div class="card mt-4 shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">AI Credit Decision & Insights</h5>
+            </div>
+            <div class="card-body">
+
+                <div class="row text-center mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Final Decision</h6>
+                        <h3
+                            class="{% if ml_decision == 'APPROVE' %}text-success{% elif ml_decision == 'REVIEW' %}text-warning{% else %}text-danger{% endif %} fw-bold">
+                            {{ ml_decision }}
+                        </h3>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Alternative Credit Score</h6>
+                        <h3 class="text-primary fw-bold">{{ ml_score }} <span class="fs-6 text-muted">/ 900</span></h3>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Risk Classification</p>
+                        <p class="fw-bold">{{ risk_bucket }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Probability of Default</p>
+                        <p class="fw-bold">{{ pd_value }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Decision Threshold</p>
+                        <p class="fw-bold">{{ decision_threshold }}</p>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded">
+                    <h6 class="text-danger mb-2"><i class="bi bi-exclamation-triangle-fill"></i> Top Risk Drivers
+                        Detected:</h6>
+                    <ul class="mb-0">
+                        {% for driver in risk_drivers %}
+                        <li>{{ driver }}</li>
+                        {% empty %}
+                        <li class="text-success" style="list-style-type: none;">
+                            <i class="bi bi-check-circle-fill"></i> No significant risk drivers detected. Financials
+                            look stable!
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3 bg-white">
+                <div class="text-muted small">Average Daily Balance</div>
+                <h4 class="fw-bold mb-0">{{ avg_balance }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 bg-success text-white">
+                <div class="opacity-75 small">Total Inflows</div>
+                <h4 class="fw-bold mb-0">{{ total_inflow }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 bg-danger text-white">
+                <div class="opacity-75 small">Total Outflows</div>
+                <h4 class="fw-bold mb-0">{{ total_outflow }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 bg-dark text-white">
+                <div class="opacity-75 small">Transaction Count</div>
+                <h4 class="fw-bold mb-0">{{ txn_count }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card p-4 h-100">
+                <h5 class="fw-bold mb-3">Liquidity Stability (Running Balance)</h5>
+                <canvas id="balanceChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-4 h-100">
+                <h5 class="fw-bold mb-3">Operating Expenses</h5>
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-3">Operational Velocity (Monthly Cash In vs. Out)</h5>
+                <canvas id="cashflowChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <script>
+        // Safely parse the JSON passed from Django
+        const dates = JSON.parse("{{ dates_json|escapejs }}");
+        const balances = JSON.parse("{{ balances_json|escapejs }}");
+
+        const months = JSON.parse("{{ months_json|escapejs }}");
+        const inflows = JSON.parse("{{ inflows_json|escapejs }}");
+        const outflows = JSON.parse("{{ outflows_json|escapejs }}");
+
+        const txnLabels = JSON.parse("{{ txn_labels_json|escapejs }}");
+        const txnValues = JSON.parse("{{ txn_values_json|escapejs }}");
+        // 1. LIQUIDITY TREND CHART (Line)
+        const ctxBalance = document.getElementById('balanceChart').getContext('2d');
+        let gradient = ctxBalance.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(34, 197, 94, 0.4)');
+        gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+
+        new Chart(ctxBalance, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Balance',
+                    data: balances,
+                    borderColor: '#22c55e',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { x: { display: false } } // Hide dense dates on X axis
+            }
+        });
+
+        // 2. EXPENSE BREAKDOWN CHART (Horizontal Bar)
+        const ctxType = document.getElementById('typeChart').getContext('2d');
+        new Chart(ctxType, {
+            type: 'bar', // Completely replaces the doughnut
+            data: {
+                labels: txnLabels,
+                datasets: [{
+                    label: 'Total Spent (₹)',
+                    data: txnValues,
+                    backgroundColor: [
+                        '#3b82f6', '#06b6d4', '#22c55e', '#84cc16', 
+                        '#eab308', '#f59e0b', '#f97316', '#ef4444' 
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', // This command flips the bar chart horizontally
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false } // Hide legend since Y-axis has the labels
+                },
+                scales: {
+                    x: { 
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString(); // Format X-axis numbers as currency
+                            }
+                        }
+                    },
+                    y: {
+                        grid: { display: false } // Clean up the background lines
+                    }
+                }
+            }
+        });
+        // 3. MONTHLY CASH FLOW (Bar)
+        const ctxCashflow = document.getElementById('cashflowChart').getContext('2d');
+        new Chart(ctxCashflow, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Cash Inflow',
+                        data: inflows,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Cash Outflow',
+                        data: outflows,
+                        backgroundColor: '#ef4444',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

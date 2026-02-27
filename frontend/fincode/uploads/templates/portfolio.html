@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Underwriting Portfolio - LiquidityLens AI</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(180deg, #f8fafc, #eef2f7);
+            font-family: "Inter", system-ui;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #0f172a, #020617);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Stat Cards */
+        .card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            transition: all 0.25s ease;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+        }
+
+        .stat-card {
+            padding: 1.4rem;
+            border-left-width: 5px !important;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-top: 0.4rem;
+            font-weight: 700;
+        }
+
+        /* Table */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 12px;
+        }
+
+        .table thead th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border: none;
+            padding: 16px;
+        }
+
+        .table tbody tr {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: 0.25s ease;
+        }
+
+        .table tbody tr:hover {
+            transform: scale(1.01);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+        }
+
+        .table td {
+            border: none;
+            padding: 20px 16px;
+            vertical-align: middle;
+        }
+
+        .score {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .risk-bucket {
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            background: #f1f5f9;
+            display: inline-block;
+        }
+
+        .btn-dark {
+            border-radius: 10px;
+            padding: 6px 16px;
+            font-weight: 500;
+            transition: 0.2s ease;
+        }
+
+        .btn-dark:hover {
+            background: #111827;
+            transform: translateY(-2px);
+        }
+
+        h5 {
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark px-4 py-3 mb-4">
+    
+    <!-- Left Side -->
+    <div class="d-flex align-items-center">
+        <a class="navbar-brand fw-bold text-success me-3" href="{% url 'login' %}">
+            LiquidityLens AI
+        </a>
+        <span class="text-white">Portfolio Command Center</span>
+    </div>
+
+    <!-- Right Side -->
+    <div class="ms-auto d-flex align-items-center gap-3">
+        <a href="{% url 'upload_csv' %}" class="btn btn-sm btn-outline-light">
+            + New Evaluation
+        </a>
+
+        <a class="nav-link text-danger fw-semibold p-0" href="{% url 'logout' %}">
+            Sign Out
+        </a>
+    </div>
+
+</nav>
+
+<div class="container mb-5">
+
+    <!-- Stats Row -->
+    <div class="row mb-4 g-4">
+        <div class="col-md-3">
+            <div class="card stat-card border-start border-primary">
+                <div class="text-muted small">Total Processed</div>
+                <h3>{{ total_evaluations }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card border-start border-success">
+                <div class="text-muted small">Approved</div>
+                <h3>{{ approved_count }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card border-start border-warning">
+                <div class="text-muted small">Manual Review</div>
+                <h3>{{ review_count }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card border-start border-danger">
+                <div class="text-muted small">Rejected</div>
+                <h3>{{ reject_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card p-4">
+        <h5 class="fw-bold mb-4">MSME Credit Ledger</h5>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Business Name</th>
+                        <th>AI Score</th>
+                        <th>Risk PD</th>
+                        <th>Risk Bucket</th>
+                        <th>Decision</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for profile in profiles %}
+                    <tr>
+                        <td class="fw-bold">{{ profile.business_name }}</td>
+
+                        <td>
+                            <span class="score">{{ profile.credit_score }}</span>
+                            <span class="text-muted small"> / 900</span>
+                        </td>
+
+                        <td>{{ profile.probability_of_default }}</td>
+
+                        <td>
+                            <span class="risk-bucket">{{ profile.risk_bucket }}</span>
+                        </td>
+
+                        <td>
+                            {% if profile.decision == 'APPROVE' %}
+                                <span class="badge bg-success px-3 py-2">APPROVED</span>
+                            {% elif profile.decision == 'REVIEW' %}
+                                <span class="badge bg-warning text-dark px-3 py-2">REVIEW</span>
+                            {% else %}
+                                <span class="badge bg-danger px-3 py-2">REJECTED</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a href="{% url 'dashboard' profile.business_name %}" class="btn btn-sm btn-dark">
+                                View Deep Dive
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No companies processed yet. Upload a CSV to begin.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

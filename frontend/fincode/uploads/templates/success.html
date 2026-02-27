@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Successful</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container vh-100 d-flex align-items-center justify-content-center">
+    
+    <div id="success-card" class="card shadow-lg border-0 p-5 text-center" style="border-radius: 20px; max-width: 500px;">
+        <div class="mb-4">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+        </div>
+        <h2 class="fw-bold mb-2">Ingestion Complete</h2>
+        <p class="text-muted mb-4">
+            Transactions securely processed for <br>
+            <strong class="text-dark">{{ business_name }}</strong>.
+        </p>
+
+        <div class="d-grid gap-3">
+            <button onclick="startAnalysis()" class="btn btn-dark py-2 fw-bold">
+                Run AI Behavioral Analysis <i class="bi bi-cpu ms-2"></i>
+            </button>
+            <a href="{% url 'upload_csv' %}" class="btn btn-outline-secondary py-2">
+                Upload Another File
+            </a>
+        </div>
+    </div>
+
+    <div id="loading-card" class="card shadow-lg border-0 p-5 text-center d-none" style="border-radius: 20px; max-width: 500px;">
+        <div class="spinner-border text-success mx-auto mb-4" style="width: 4rem; height: 4rem;" role="status"></div>
+        <h3 class="fw-bold">Performing Analysis...</h3>
+        <p class="text-muted mt-2" id="loading-text">Extracting alternative financial signals...</p>
+    </div>
+
+</div>
+
+<script>
+    function startAnalysis() {
+        // Hide success card, show loading card
+        document.getElementById('success-card').classList.add('d-none');
+        document.getElementById('loading-card').classList.remove('d-none');
+
+        // Cycle through some cool text to make it look like the AI is working
+        setTimeout(() => { document.getElementById('loading-text').innerText = "Mapping behavioral features..."; }, 800);
+        setTimeout(() => { document.getElementById('loading-text').innerText = "Running MSME Credit Engine..."; }, 1600);
+
+        // After 2.5 seconds, redirect to the actual dashboard URL
+        setTimeout(() => {
+            window.location.href = "{% url 'dashboard' business_name %}";
+        }, 2500);
+    }
+</script>
+
+</body>
+</html>
