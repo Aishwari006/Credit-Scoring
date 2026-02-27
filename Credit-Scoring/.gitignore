@@ -37,7 +37,6 @@ fincode/
 # CRITICAL: Never commit raw financial data or user uploads!
 *.csv
 *.xlsx
-uploads/
 media/
 data/
 dataset/
