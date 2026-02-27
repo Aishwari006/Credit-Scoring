@@ -1,28 +1,19 @@
-# =========================
-# Python & Django Core
-# =========================
+# python and django files
 __pycache__/
 *.py[cod]
 *$py.class
 *.log
 local_settings.py
 
-# =========================
-# Database (CRITICAL)
-# =========================
+# database files
 db.sqlite3
 db.sqlite3-journal
 *.sqlite3
 
-# =========================
-# Machine Learning Models
-# =========================
-# NOTE: We are intentionally NOT ignoring *.pkl files here. 
-# Your Django app needs those models to run the demo, so we want them pushed!
+# machine learning models
+# we are not ignoring .pkl files because the app needs them
 
-# =========================
-# Virtual Environments & Secrets
-# =========================
+# virtual environments and secret files
 .env
 .venv/
 venv/
@@ -31,25 +22,19 @@ ENV/
 fincode/
 .conda/
 
-# =========================
-# Hackathon Data & User Uploads
-# =========================
-# CRITICAL: Never commit raw financial data or user uploads!
+# user uploads and data files
+# do not commit raw financial data or uploaded files
 *.csv
 *.xlsx
 media/
 data/
 dataset/
 
-# =========================
-# Generated Outputs
-# =========================
+# generated images and outputs
 *.png
 outputs/
 
-# =========================
-# OS & IDE Generated Files
-# =========================
+# system and IDE files
 .DS_Store
 .DS_Store?
 ._*

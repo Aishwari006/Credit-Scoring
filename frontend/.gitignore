@@ -12,7 +12,7 @@ venv/
 env/
 .env
 
-# User Uploads & Media (CRITICAL: Don't push uploaded CSVs!)
+# User Uploads & Media
 *.csv
 *.xlsx
 

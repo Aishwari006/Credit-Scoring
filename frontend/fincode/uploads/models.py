@@ -33,12 +33,12 @@ class CompanyCreditProfile(models.Model):
     credit_score = models.IntegerField(null=True, blank=True)
     decision = models.CharField(max_length=50, null=True, blank=True)
     
-    # --- NEW EXPLAINABLE AI FIELDS ---
+    # EXPLAINABLE AI FIELDS
     probability_of_default = models.FloatField(null=True, blank=True)
     decision_threshold = models.FloatField(null=True, blank=True)
     risk_bucket = models.CharField(max_length=100, null=True, blank=True)
     top_risk_drivers = JSONField(null=True, blank=True) # Stores the list of reasons
-    # ---------------------------------
+    
     
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -12,13 +12,12 @@ from sklearn.calibration import calibration_curve
 
 df = pd.read_csv("behaviour_training_dataset.csv")
 
-
 X = df.drop(columns=["default","company"])
 y = df["default"]
 
-
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.25,random_state=42,stratify=y)
-
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42, stratify=y
+)
 
 model = RandomForestClassifier(
     n_estimators=250,
@@ -27,27 +26,22 @@ model = RandomForestClassifier(
     random_state=42
 )
 
-
-model.fit(X_train,y_train)
-
+model.fit(X_train, y_train)
 
 pred = model.predict_proba(X_test)[:,1]
 
-
-print("AUC:", roc_auc_score(y_test,pred))
+print("AUC:", roc_auc_score(y_test, pred))
 print(classification_report(y_test, pred>0.5))
-
 
 joblib.dump(model,"models/behaviour_risk_model.pkl")
 joblib.dump(list(X.columns),"models/behaviour_feature_columns.pkl")
 
-# Create outputs directory if it doesn't exist
+# create outputs folder if needed
 os.makedirs("outputs", exist_ok=True)
 
 print("\nGenerating evaluation graphs...")
-# =========================
-# 1. ROC CURVE
-# =========================
+
+# roc curve
 fpr, tpr, _ = roc_curve(y_test, pred)
 
 plt.figure()
@@ -60,9 +54,7 @@ plt.legend()
 plt.savefig("outputs/roc_curve.png")
 plt.close()
 
-# =========================
-# 2. KS CURVE
-# =========================
+# ks curve
 data = pd.DataFrame({'y': y_test.values, 'p': pred}).sort_values('p')
 data['cum_good'] = (1 - data['y']).cumsum() / (1 - data['y']).sum()
 data['cum_bad'] = data['y'].cumsum() / data['y'].sum()
@@ -75,10 +67,7 @@ plt.legend()
 plt.savefig("outputs/ks_curve.png")
 plt.close()
 
-# =========================
-# 3. SCORE DISTRIBUTION
-# =========================
-# Replicating the logic from underwrite.py: score = 850 - (pd * 550)
+# score distribution
 import numpy as np
 scores = np.clip(850 - (pred * 550), 300, 850)
 
@@ -90,9 +79,7 @@ plt.title("Score Distribution")
 plt.savefig("outputs/score_distribution.png")
 plt.close()
 
-# =========================
-# 4. CALIBRATION CURVE
-# =========================
+# calibration curve
 prob_true, prob_pred = calibration_curve(y_test, pred, n_bins=10)
 
 plt.figure()
@@ -104,10 +91,7 @@ plt.title("Calibration Curve")
 plt.savefig("outputs/calibration_curve.png")
 plt.close()
 
-# =========================
-# 5. FEATURE IMPORTANCE
-# =========================
-# Extracting importance from Random Forest
+# feature importance
 importance = pd.Series(model.feature_importances_, index=X.columns).sort_values()
 
 plt.figure(figsize=(8,10))

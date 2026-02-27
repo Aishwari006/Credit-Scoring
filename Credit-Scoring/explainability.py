@@ -1,8 +1,7 @@
 import requests
 
 def generate_explanation(features_row):
-    # 1. DETERMINISTIC RULE ENGINE (Ground Truth)
-    # These become your 1-line pointwise explanations
+    # rule-based explanations
     base_reasons = []
 
     if features_row.get("balance_cv", 0) > 1.0:
@@ -23,7 +22,7 @@ def generate_explanation(features_row):
     if not base_reasons:
         base_reasons.append("Stable financials with no severe distress markers")
 
-    # 2. CONSTRUCT THE AGENTIC PROMPT
+    # build LLM prompt
     prompt = f"""
     You are a strict, senior credit risk underwriter for a fintech company. 
     Analyze this MSME business based on the following algorithmic triggers and metrics.
@@ -40,7 +39,7 @@ def generate_explanation(features_row):
     Do not use bullet points. Do not introduce yourself. Just provide the analytical paragraph.
     """
 
-    # 3. CALL LOCAL OLLAMA API
+    # call local ollama api
     try:
         response = requests.post('http://localhost:11434/api/generate', json={
             "model": "qwen3:8b",
@@ -51,13 +50,10 @@ def generate_explanation(features_row):
         if response.status_code == 200:
             llm_text = response.json()['response'].strip()
             
-            # ==========================================
-            # THE FIX: COMBINE POINTS AND PARAGRAPH
-            # ==========================================
-            # We add a bold prefix so the paragraph stands out visually from the points
+            # combine bullet points and paragraph
             detailed_paragraph = f"AI Deep Dive: {llm_text}"
             
-            # Return the bullet points first, then the detailed paragraph at the bottom
+            # return rule points plus detailed paragraph
             return base_reasons + [detailed_paragraph]
             
         else:
@@ -65,6 +61,6 @@ def generate_explanation(features_row):
             return base_reasons
             
     except requests.exceptions.RequestException as e:
-        # HACKATHON SAFETY NET
+        # fallback if ollama fails
         print(f"Ollama connection failed: {e}. Falling back to static list.")
         return base_reasons

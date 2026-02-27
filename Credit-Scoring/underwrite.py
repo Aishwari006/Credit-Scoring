@@ -6,7 +6,7 @@ from explainability import generate_explanation
 import numpy as np
 
 
-# 1. FORCE ABSOLUTE PATHING
+# set absolute paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "models", "behaviour_risk_model.pkl")
 FEATURES_PATH = os.path.join(BASE_DIR, "models", "behaviour_feature_columns.pkl")
@@ -14,8 +14,7 @@ FEATURES_PATH = os.path.join(BASE_DIR, "models", "behaviour_feature_columns.pkl"
 MODEL = joblib.load(MODEL_PATH)
 
 
-# Bank policy (editable)
-# FIX: Loosened the thresholds so the demo company easily passes
+# bank decision thresholds
 APPROVE_PD = 0.60  
 REVIEW_PD = 0.75  
 
@@ -40,23 +39,22 @@ def loan_decision(pd):
     else:
         return "REJECT"
 
-# =========================================================
-# DJANGO INTEGRATION PIPELINE
-# =========================================================
+
+# django integration
 def underwrite_from_django(df):
     """Takes a Pandas DataFrame directly from Django's database."""
     
     df_company = df.copy()
     
-    # 1. Rename columns to match what load_transactions expects
+    # rename columns if needed
     df_company = df_company.rename(columns={"Date": "date", "Balance": "balance"})
     
-    # 2. Create the 'description' column (Behaviour Engine relies heavily on this)
+    # create description column
     txn_col = "txn_type" if "txn_type" in df_company.columns else "type"
     dest_col = "nameDest" if "nameDest" in df_company.columns else "namedest"
     df_company["description"] = df_company[txn_col].astype(str) + " " + df_company[dest_col].astype(str)
     
-    # 3. Force the correct positive/negative signs for cash flow
+    # set correct sign for cash flow
     CREDIT_TYPES = ["CASH_IN"]
     df_company["amount"] = np.where(
         df_company[txn_col].isin(CREDIT_TYPES),
@@ -66,18 +64,18 @@ def underwrite_from_django(df):
 
     df_company = df_company[["date", "description", "amount", "balance"]]
 
-    # 4. Generate the 28 behavioral features
+    # generate behavioral features
     tx = load_transactions(df_company)
     bf = behavioural_features(tx)
     
-    # Ensure exact column match with the trained Random Forest model
+    # match model feature columns
     model_cols = joblib.load(FEATURES_PATH)
     for col in model_cols:
         if col not in bf.columns:
             bf[col] = 0
     bf = bf[model_cols]
     
-    # 5. Predict & Explain!
+    # predict and generate explanation
     pd_value = MODEL.predict_proba(bf)[0, 1]
     reasons = generate_explanation(bf.iloc[0])
 
@@ -87,21 +85,19 @@ def underwrite_from_django(df):
         "Risk_Grade": risk_grade(pd_value),
         "Decision": loan_decision(pd_value),
         "Key_Risk_Drivers": reasons,
-        "ml_features": bf.iloc[0].to_dict() # Passes features back to save in DB
+        "ml_features": bf.iloc[0].to_dict()
     }
 
-def underwrite(csv_file):
 
+# standalone underwriting
+def underwrite(csv_file):
 
     tx = load_transactions(csv_file)
     bf = behavioural_features(tx)
 
-
     pd_value = MODEL.predict_proba(bf)[0,1]
 
-
     reasons = generate_explanation(bf.iloc[0])
-
 
     result = {
         "Credit_Score": pd_to_score(pd_value),
@@ -111,15 +107,12 @@ def underwrite(csv_file):
         "Key_Risk_Drivers": reasons
     }
 
-
     return result
 
 
 def pd_to_score(pd):
     score = 850 - (pd * 550)
     return int(max(300, min(850, score)))
-
-
 
 
 import sys

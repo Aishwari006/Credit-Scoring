@@ -4,32 +4,31 @@ from datetime import datetime, timedelta
 import random
 
 def generate_super_healthy(filename):
-    # Setup 24 months of dates
+    # generate 24 months of transactions
     start_date = datetime(2024, 1, 1)
     end_date = datetime(2025, 12, 31)
     
     current_date = start_date
-    current_balance = 250000.00 # Starts with a very strong cash buffer
+    current_balance = 250000.00  # strong starting balance
     transactions = []
     
     while current_date <= end_date:
-        # SUPER HEALTHY PROFILE: Thriving E-Commerce / SaaS
-        # 80% chance of making money every single day.
-        # 30% chance of paying expenses.
+        # super healthy business profile
         inflow_chance = 0.8 
         outflow_chance = 0.3
         
-        # High daily revenue, strictly controlled expenses
+        # high revenue and controlled expenses
         inflow_amt = random.uniform(8000, 15000) 
         outflow_amt = random.uniform(4000, 9000)
         
-        # Keywords that match your Django views.py EXACTLY
+        # inflow descriptions
         desc_in = random.choice([
             "Payment Gateway Settlement", 
             "E-commerce Sale Received", 
             "B2B Customer Deposit"
         ])
         
+        # outflow descriptions
         desc_out = random.choice([
             "Wholesale Vendor Purchase", 
             "Logistics & Shipping Vendor", 
@@ -38,7 +37,7 @@ def generate_super_healthy(filename):
             "GST Tax Payment"
         ])
 
-        # Generate Inflow (Cash In)
+        # generate inflow
         if random.random() < inflow_chance:
             current_balance += inflow_amt
             transactions.append({
@@ -48,7 +47,7 @@ def generate_super_healthy(filename):
                 "balance": round(current_balance, 2)
             })
             
-        # Generate Outflow (Cash Out)
+        # generate outflow
         if random.random() < outflow_chance:
             current_balance -= outflow_amt
             transactions.append({
@@ -60,20 +59,21 @@ def generate_super_healthy(filename):
             
         current_date += timedelta(days=1)
 
-    # Save to CSV
+    # save to csv
     df = pd.DataFrame(transactions)
-    # Ensure columns match your Django expectation exactly
+    
+    # ensure correct column order
     df = df[['date', 'description', 'amount', 'balance']]
     df.to_csv(filename, index=False)
     
-    # Calculate quick stats to prove how healthy it is
+    # calculate summary stats
     total_in = df[df['description'].str.contains('Sale|Settlement|Deposit')]['amount'].sum()
     total_out = df[~df['description'].str.contains('Sale|Settlement|Deposit')]['amount'].sum()
     
-    print(f"✅ Generated {filename} with {len(df)} transactions.")
-    print(f"💰 Total Revenue: ₹{total_in:,.2f}")
-    print(f"📉 Total Expenses: ₹{total_out:,.2f}")
-    print(f"🏦 Final Bank Balance: ₹{current_balance:,.2f}")
+    print(f" Generated {filename} with {len(df)} transactions.")
+    print(f" Total Revenue: ₹{total_in:,.2f}")
+    print(f" Total Expenses: ₹{total_out:,.2f}")
+    print(f" Final Bank Balance: ₹{current_balance:,.2f}")
 
 if __name__ == "__main__":
     generate_super_healthy("super_healthy_ecommerce.csv")
