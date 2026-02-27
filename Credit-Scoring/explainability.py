@@ -2,7 +2,7 @@ import requests
 
 def generate_explanation(features_row):
     # 1. DETERMINISTIC RULE ENGINE (Ground Truth)
-    # We still calculate these so the LLM doesn't hallucinate the math.
+    # These become your 1-line pointwise explanations
     base_reasons = []
 
     if features_row.get("balance_cv", 0) > 1.0:
@@ -46,17 +46,25 @@ def generate_explanation(features_row):
             "model": "qwen3:8b",
             "prompt": prompt,
             "stream": False
-        }, timeout=15) # 15-second timeout so the UI doesn't hang forever
+        }, timeout=60) 
 
         if response.status_code == 200:
             llm_text = response.json()['response'].strip()
-            # We return it as a list with a single item so it doesn't break your existing Django HTML loop
-            return [llm_text]
+            
+            # ==========================================
+            # THE FIX: COMBINE POINTS AND PARAGRAPH
+            # ==========================================
+            # We add a bold prefix so the paragraph stands out visually from the points
+            detailed_paragraph = f"AI Deep Dive: {llm_text}"
+            
+            # Return the bullet points first, then the detailed paragraph at the bottom
+            return base_reasons + [detailed_paragraph]
+            
         else:
             print("Ollama returned an error, falling back to static rules.")
-            return base_reasons[:5]
+            return base_reasons
             
     except requests.exceptions.RequestException as e:
-        # HACKATHON SAFETY NET: If Ollama crashes or isn't running, gracefully fall back to the basic list
+        # HACKATHON SAFETY NET
         print(f"Ollama connection failed: {e}. Falling back to static list.")
-        return base_reasons[:5]
+        return base_reasons

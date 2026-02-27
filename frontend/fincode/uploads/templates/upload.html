@@ -213,6 +213,34 @@
         document.getElementById('upload-icon').className = "bi bi-check-circle-fill fs-1 text-success";
         document.getElementById('file-subtitle').innerText = "File ready for processing";
     });
+    // --- Bulletproof Drag and Drop Logic ---
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.getElementById('id_file');
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#22c55e';
+        dropZone.style.backgroundColor = '#f0fdf4';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#94a3b8';
+        dropZone.style.backgroundColor = 'transparent';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#94a3b8';
+        dropZone.style.backgroundColor = 'transparent';
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            // Manually trigger the text update script
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
+        }
+    });
     document.getElementById('simulate-aa-btn').addEventListener('click', function(e) {
         e.preventDefault();
         

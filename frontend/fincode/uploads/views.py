@@ -95,6 +95,12 @@ def upload_csv_view(request):
                     messages.error(request, f"Pandas crashed. Columns seen: {df.columns.tolist()} | Error: {str(e)}")
                 else:
                     messages.error(request, f"File failed to open. Error: {str(e)}")
+        else:
+            print("FORM VALIDATION FAILED:", form.errors) # Prints to your terminal
+            for field, errors in form.errors.items():
+                for error in errors:
+                    # Blasts the exact error to your UI as a red banner
+                    messages.error(request, f"Upload Blocked - {field.title()}: {error}")
     else:
         form = FinancialUploadForm()
         
