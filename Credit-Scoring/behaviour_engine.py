@@ -67,10 +67,56 @@ def load_transactions(input_data):
 
     df = df.sort_values("date")
     # SAFETY: detect unsigned transaction datasets
+   
+   
+    # -------------------------------------------------
+    # AUTO-SIGN AMOUNTS FOR REAL BANK STATEMENTS
+    # -------------------------------------------------
+    # If dataset has no negative values, infer debit vs credit
     if (df["amount"] < 0).sum() == 0:
-        raise Exception(
-            "No debit transactions detected. Mapping layer likely failed to sign amounts."
-        )
+
+
+        print("Unsigned transactions detected → inferring debit/credit...")
+
+
+        debit_keywords = [
+            "payment","rent","emi","loan","transfer","sent",
+            "debit","withdraw","atm","upi-","neft-","imps-",
+            "charge","fee","gst","tax","bill","purchase",
+            "electricity","water","fuel","salary","vendor"
+        ]
+
+
+        credit_keywords = [
+            "received","deposit","sale","customer","credit","refund"
+        ]
+
+
+        def infer_sign(row):
+            text = str(row["description"]).lower()
+
+
+            if any(k in text for k in debit_keywords):
+                return -abs(row["amount"])
+
+
+            if any(k in text for k in credit_keywords):
+                return abs(row["amount"])
+
+
+            # fallback: use balance movement
+            return row["amount"]
+
+
+        df["amount"] = df.apply(infer_sign, axis=1)
+
+
+        # FINAL CHECK (after fixing)
+        if (df["amount"] < 0).sum() == 0:
+            raise Exception(
+                "Could not infer debit transactions from descriptions. "
+                "Your demo_company.csv descriptions are unrealistic."
+            )
 
 
     df["credit"] = df["amount"].clip(lower=0)
@@ -272,6 +318,34 @@ def behavioural_features(df):
     features["max_inactive_gap"] = gaps.max()
 
 
+    # =========================================================
+    # >>> ADD THIS WHOLE BLOCK RIGHT HERE <<<
+    # FINANCIAL SURVIVAL SIGNALS (USED BY RISK MODEL)
+    # =========================================================
+
+
+    credits = g[g["amount"] > 0]["amount"]
+    debits = g[g["amount"] < 0]["amount"].abs()
+
+
+    features["avg_credit"] = credits.mean() if len(credits) else 0
+    features["avg_debit"] = debits.mean() if len(debits) else 0
+    features["max_debit"] = debits.max() if len(debits) else 0
+
+
+    features["balance_std"] = daily_balance.std()
+
+
+    # months with no income
+    monthly_credit_full = g.groupby(g["date"].dt.to_period("M"))["credit"].sum()
+    features["months_without_credit"] = (monthly_credit_full == 0).sum()
+
+
+    # dependency on single counterparty
+    counterparty_share = g["clean_desc"].value_counts(normalize=True)
+    features["top_counterparty_share"] = counterparty_share.iloc[0] if len(counterparty_share) else 0
+
+
     return pd.DataFrame([features])
 
 
@@ -310,3 +384,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

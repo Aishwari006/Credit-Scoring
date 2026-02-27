@@ -1,5 +1,5 @@
 import joblib
 
-features = joblib.load("08_feature_defaults.pkl")
+features = joblib.load("models/behaviour_feature_columns.pkl")
 print(len(features))
 print(features)
